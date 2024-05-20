@@ -295,7 +295,7 @@ async def show_fsub(client, message):
             chat = await client.get_chat(int(channel_id))
             channel_info.append(f"→ **[{chat.title}]({chat.invite_link})**")
         if channel_info:
-            await message.reply(f"Force Subscribed channels:\n" + "\n".join(channel_info))
+            await message.reply(f"Force Subscribed channels:\n\n" + "\n".join(channel_info), parse_mode=ParseMode.MARKDOWN)
         else:
             await message.reply("No subscribed channels found.")
     else:
