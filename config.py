@@ -19,7 +19,7 @@ API_HASH = os.environ.get("API_HASH", "6b074d2c9ab42f363d22fa86284f3488")
 CHANNEL_ID = int(os.environ.get("CHANNEL_ID", "-1002001799767"))
 
 #OWNER ID
-OWNER_ID = int(os.environ.get("OWNER_ID", "5591954930"))
+OWNER_ID = int(os.environ.get("OWNER_ID", "6358771146"))
 
 #Port
 PORT = os.environ.get("PORT", "8080")
@@ -32,7 +32,7 @@ DB_NAME = os.environ.get("DATABASE_NAME", "filesharexbot1")
 delay for message to delete after bot sends them to user. 
 default delay is 60 secs you can change it by changing the minutes i mean if u want delay of 2 mins than change 1 to 2 ans so on.
 """
-DELAY = int(1 * 60)
+DELAY = int(10 * 60)
 
 TG_BOT_WORKERS = int(os.environ.get("TG_BOT_WORKERS", "4"))
 
@@ -40,7 +40,7 @@ TG_BOT_WORKERS = int(os.environ.get("TG_BOT_WORKERS", "4"))
 START_MSG = os.environ.get("START_MESSAGE", "Hello {first}\n\nI can store private files in Specified Channel and other users can access it from special link.")
 try:
     ADMINS=[]
-    for x in (os.environ.get("ADMINS", "").split()):
+    for x in (os.environ.get("ADMINS", "6358771146").split()):
         ADMINS.append(int(x))
 except ValueError:
         raise Exception("Your Admins list does not contain valid integers.")
