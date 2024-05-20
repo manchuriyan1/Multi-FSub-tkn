@@ -6,7 +6,7 @@ RUN apt update -y && apt upgrade -y && \
     
 RUN git clone https://github.com/Vishnu9783/Multi-FSub app
 
-WORKDIR /app
+WORKDIR app
 
 RUN pip3 install -r requirements.txt
 
