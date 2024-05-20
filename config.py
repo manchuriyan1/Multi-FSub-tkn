@@ -31,13 +31,11 @@ PORT = os.environ.get("PORT", "8080")
 DB_URI = os.environ.get("DATABASE_URL", "")
 DB_NAME = os.environ.get("DATABASE_NAME", "filesharexbot")
 
-#force sub channel id, use "," between each id and add "-100" as prefix
-try:
-    FORCE_SUB_CHANNELS=[]
-    for x in (os.environ.get("FORCE_SUB_CHANNELS", "").split()):
-        AFORCE_SUB_CHANNELS.append(int(x))
-except ValueError:
-        raise Exception("Your Channel list does not contain valid integers.")
+"""
+delay for message to delete after bot sends them to user. 
+default delay is 60 secs you can change it by changing the minutes i mean if u want delay of 2 mins than change 1 to 2 ans so on.
+"""
+DELAY = "1 * 60"
 
 TG_BOT_WORKERS = int(os.environ.get("TG_BOT_WORKERS", "4"))
 
