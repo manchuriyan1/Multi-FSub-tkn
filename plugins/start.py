@@ -16,8 +16,8 @@ async def delete_message_after_delay(client: Client, chat_id: int, message_id: i
     await asyncio.sleep(delay)
     try:
         await client.delete_messages(chat_id, message_id)
-    except:
-        pass
+    except Exception as e:
+        print(f"Error deleting message {message_id} in chat {chat_id}: {e}")
 
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
@@ -98,8 +98,8 @@ async def start_command(client: Client, message: Message):
                     protect_content=PROTECT_CONTENT
                 )
                 asyncio.create_task(delete_message_after_delay(client, message.from_user.id, sent_message.id, int(DELAY)))
-            except:
-                pass
+            except Exception as e:
+                print(f"Error sending message: {e}")
         return
     else:
         reply_markup = InlineKeyboardMarkup(
