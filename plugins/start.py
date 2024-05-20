@@ -292,7 +292,7 @@ async def show_fsub(client, message):
         channel_ids = fsub_entry["channel_ids"]
         channel_info = []
         for channel_id in channel_ids:
-            chat = await client.get_chat(channel_id)
+            chat = await client.get_chat(int(channel_id))
             channel_info.append(f"→ **[{chat.name}]({chat.invite_link})**")
         if channel_info:
             await message.reply(f"Force Subscribed channels:\n" + "\n".join(channel_info))
