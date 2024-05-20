@@ -1,8 +1,4 @@
 #(©)CodeXBotz
-
-
-
-
 import os
 import asyncio
 from pyrogram import Client, filters, __version__
@@ -11,12 +7,17 @@ from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, 
 from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated
 
 from bot import Bot
-from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT, FORCE_SUB_CHANNELS
+from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT
 from helper_func import subscribed, encode, decode, get_messages
-from database.database import add_user, del_user, full_userbase, present_user
+from database.database import add_user, del_user, full_userbase, present_user, fsub
 
 
-
+async def delete_message_after_delay(client: Client, chat_id: int, message_id: int, delay: int):
+    await asyncio.sleep(delay)
+    try:
+        await client.delete_messages(chat_id, message_id)
+    except:
+        pass
 
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
@@ -27,7 +28,7 @@ async def start_command(client: Client, message: Message):
         except:
             pass
     text = message.text
-    if len(text)>7:
+    if len(text) > 7:
         try:
             base64_string = text.split(" ", 1)[1]
         except:
@@ -41,7 +42,7 @@ async def start_command(client: Client, message: Message):
             except:
                 return
             if start <= end:
-                ids = range(start,end+1)
+                ids = range(start, end + 1)
             else:
                 ids = []
                 i = start
@@ -64,9 +65,11 @@ async def start_command(client: Client, message: Message):
         await temp_msg.delete()
 
         for msg in messages:
-
             if bool(CUSTOM_CAPTION) & bool(msg.document):
-                caption = CUSTOM_CAPTION.format(previouscaption = "" if not msg.caption else msg.caption.html, filename = msg.document.file_name)
+                caption = CUSTOM_CAPTION.format(
+                    previouscaption="" if not msg.caption else msg.caption.html,
+                    filename=msg.document.file_name
+                )
             else:
                 caption = "" if not msg.caption else msg.caption.html
 
@@ -76,11 +79,25 @@ async def start_command(client: Client, message: Message):
                 reply_markup = None
 
             try:
-                await msg.copy(chat_id=message.from_user.id, caption = caption, parse_mode = ParseMode.HTML, reply_markup = reply_markup, protect_content=PROTECT_CONTENT)
+                sent_message = await msg.copy(
+                    chat_id=message.from_user.id,
+                    caption=caption,
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=reply_markup,
+                    protect_content=PROTECT_CONTENT
+                )
+                asyncio.create_task(delete_message_after_delay(client, message.from_user.id, sent_message.id, DELAY))  # Schedule deletion after 2 minutes
                 await asyncio.sleep(0.5)
             except FloodWait as e:
                 await asyncio.sleep(e.x)
-                await msg.copy(chat_id=message.from_user.id, caption = caption, parse_mode = ParseMode.HTML, reply_markup = reply_markup, protect_content=PROTECT_CONTENT)
+                sent_message = await msg.copy(
+                    chat_id=message.from_user.id,
+                    caption=caption,
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=reply_markup,
+                    protect_content=PROTECT_CONTENT
+                )
+                asyncio.create_task(delete_message_after_delay(client, message.from_user.id, sent_message.id, DELAY))  # Schedule deletion after 2 minutes
             except:
                 pass
         return
@@ -88,22 +105,22 @@ async def start_command(client: Client, message: Message):
         reply_markup = InlineKeyboardMarkup(
             [
                 [
-                    InlineKeyboardButton("😊 About Me", callback_data = "about"),
-                    InlineKeyboardButton("🔒 Close", callback_data = "close")
+                    InlineKeyboardButton("😊 About Me", callback_data="about"),
+                    InlineKeyboardButton("🔒 Close", callback_data="close")
                 ]
             ]
         )
         await message.reply_text(
-            text = START_MSG.format(
-                first = message.from_user.first_name,
-                last = message.from_user.last_name,
-                username = None if not message.from_user.username else '@' + message.from_user.username,
-                mention = message.from_user.mention,
-                id = message.from_user.id
+            text=START_MSG.format(
+                first=message.from_user.first_name,
+                last=message.from_user.last_name,
+                username=None if not message.from_user.username else '@' + message.from_user.username,
+                mention=message.from_user.mention,
+                id=message.from_user.id
             ),
-            reply_markup = reply_markup,
-            disable_web_page_preview = True,
-            quote = True
+            reply_markup=reply_markup,
+            disable_web_page_preview=True,
+            quote=True
         )
         return
 
@@ -116,14 +133,21 @@ REPLY_ERROR = """<code>Use this command as a replay to any telegram message with
 
 #=====================================================================================##
 
-    
-    
+        
 @Bot.on_message(filters.command('start') & filters.private)
 async def not_joined(client: Client, message: Message):
     buttons = []
     
+    bot_id = client.me.id
+    fsub_entry = fsub.find_one({"_id": bot_id})
+
+    if not fsub_entry or "channel_ids" not in fsub_entry:
+        return
+
+    force_sub_channels = fsub_entry["channel_ids"]
+    
     # Iterate through each force subscription channel
-    for idx, force_sub_channel in enumerate(Config.FORCE_SUB_CHANNELS, start=1):
+    for idx, force_sub_channel in enumerate(force_sub_channels, start=1):
         try:
             invite_link = await client.create_chat_invite_link(chat_id=force_sub_channel)
             buttons.append(
@@ -213,3 +237,55 @@ Unsuccessful: <code>{unsuccessful}</code></b>"""
         msg = await message.reply(REPLY_ERROR)
         await asyncio.sleep(8)
         await msg.delete()
+
+#add fsub in db 
+@Bot.on_message(filters.command('addfsub') & filters.private & filters.user(ADMINS))
+async def add_fsub(client, message):
+    if len(message.command) == 1:
+        await message.reply("Please provide channel IDs to add as fsub in the bot. If adding more than one, separate IDs with spaces.")
+        return
+
+    channel_ids = message.text.split()[1:]
+    bot_id = client.me.id
+
+    for channel_id in channel_ids:
+        try:
+            test_msg = await client.send_message(channel_id, "test")
+            await test_msg.delete()
+        except:
+            await message.reply(f"Please make admin bot in channel_id: {channel_id} or double check the id.")
+
+    fsub.update_one(
+        {"_id": bot_id},
+        {"$addToSet": {"channel_ids": {"$each": channel_ids}}},
+        upsert=True
+    )
+    await message.reply(f"Added channel IDs: {', '.join(channel_ids)}")
+
+### Deleting Channel IDs
+@Bot.on_message(filters.command('delfsub') & filters.private & filters.user(ADMINS))
+async def del_fsub(client, message):
+    if len(message.command) == 1:
+        await message.reply("Please provide channel IDs to delete from fsub in the bot. If deleting more than one, separate IDs with spaces.")
+        return
+
+    channel_ids = message.text.split()[1:]
+    bot_id = client.me.id  # Assuming `client.me.id` returns the bot's ID
+
+    fsub.update_one(
+        {"_id": bot_id},
+        {"$pull": {"channel_ids": {"$in": channel_ids}}}
+    )
+    await message.reply(f"Deleted channel IDs: {', '.join(channel_ids)}")
+
+### Showing All Channel IDs
+@Bot.on_message(filters.command('showfsub') & filters.private & filters.user(ADMINS))
+async def show_fsub(client, message):
+    bot_id = client.me.id
+    fsub_entry = fsub.find_one({"_id": bot_id})
+
+    if fsub_entry and "channel_ids" in fsub_entry:
+        channel_ids = fsub_entry["channel_ids"]
+        await message.reply(f"Subscribed channel IDs: {', '.join(channel_ids)}")
+    else:
+        await message.reply("No subscribed channel IDs found.")
