@@ -86,7 +86,7 @@ async def start_command(client: Client, message: Message):
                     reply_markup=reply_markup,
                     protect_content=PROTECT_CONTENT
                 )
-                asyncio.create_task(delete_message_after_delay(client, message.from_user.id, sent_message.id, DELAY))
+                asyncio.create_task(delete_message_after_delay(client, message.from_user.id, sent_message.id, int(DELAY)))
                 await asyncio.sleep(0.5)
             except FloodWait as e:
                 await asyncio.sleep(e.x)
@@ -97,7 +97,7 @@ async def start_command(client: Client, message: Message):
                     reply_markup=reply_markup,
                     protect_content=PROTECT_CONTENT
                 )
-                asyncio.create_task(delete_message_after_delay(client, message.from_user.id, sent_message.id, DELAY))
+                asyncio.create_task(delete_message_after_delay(client, message.from_user.id, sent_message.id, int(DELAY)))
             except:
                 pass
         return
@@ -250,6 +250,7 @@ async def add_fsub(client, message):
 
     for channel_id in channel_ids:
         try:
+            print(channel_id)
             test_msg = await client.send_message(int(channel_id), "test")
             await test_msg.delete()
         except:
