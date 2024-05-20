@@ -29,6 +29,7 @@ async def start_command(client: Client, message: Message):
             pass
     text = message.text
     if len(text) > 7:
+        await message.delete()
         try:
             base64_string = text.split(" ", 1)[1]
         except:
@@ -98,6 +99,7 @@ async def start_command(client: Client, message: Message):
                     protect_content=PROTECT_CONTENT
                 )
                 asyncio.create_task(delete_message_after_delay(client, message.from_user.id, sent_message.id, int(DELAY)))
+            await message.reply("**Please forward files somewhere else or save in **Saved Messages** cause file going to delete in few minutes.")
             except Exception as e:
                 print(f"Error sending message: {e}")
         return
@@ -288,6 +290,13 @@ async def show_fsub(client, message):
 
     if fsub_entry and "channel_ids" in fsub_entry:
         channel_ids = fsub_entry["channel_ids"]
-        await message.reply(f"Subscribed channel IDs: {', '.join(channel_ids)}")
+        channel_info = []
+        for channel_id in channel_ids:
+            chat = await bot.get_chat(channel_id)
+            channel_info.append(f"→ **[{chat.name}]({chat.invite_link})**")
+        if channel_info:
+            await message.reply(f"Force Subscribed channels:\n" + "\n".join(channel_info))
+        else:
+            await message.reply("No subscribed channels found.")
     else:
         await message.reply("No subscribed channel IDs found.")
