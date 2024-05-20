@@ -254,6 +254,7 @@ async def add_fsub(client, message):
             await test_msg.delete()
         except:
             await message.reply(f"Please make admin bot in channel_id: {channel_id} or double check the id.")
+            return
 
     fsub.update_one(
         {"_id": bot_id},
