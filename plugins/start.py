@@ -101,7 +101,9 @@ async def start_command(client: Client, message: Message):
                 asyncio.create_task(delete_message_after_delay(client, message.from_user.id, sent_message.id, int(DELAY)))
             except Exception as e:
                 print(f"Error sending message: {e}")
-        await message.reply("**Please forward files somewhere else or save in **Saved Messages** cause file going to delete in few minutes.")
+        n_msg = await message.reply("**Please forward files somewhere else or save in Saved Messages cause file going to delete in few minutes.")
+        await asyncio.sleep(10)
+        await n_msg.delete()
         return
     else:
         reply_markup = InlineKeyboardMarkup(
