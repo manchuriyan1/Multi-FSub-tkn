@@ -5,26 +5,33 @@ import re
 import asyncio
 from pyrogram import filters
 from pyrogram.enums import ChatMemberStatus
-from config import FORCE_SUB_CHANNELS, ADMINS
+from config import ADMINS
 from pyrogram.errors.exceptions.bad_request_400 import UserNotParticipant
 from pyrogram.errors import FloodWait
 
+from database.database import fsub
+
 async def is_subscribed(filter, client, update):
-    if not FORCE_SUB_CHANNELS:
+    bot_id = client.me.id
+    fsub_entry = fsub.find_one({"_id": bot_id})
+
+    if not fsub_entry or "channel_ids" not in fsub_entry:
         return True
+    
+    force_sub_channels = fsub_entry["channel_ids"]
     
     user_id = update.from_user.id
     
     if user_id in ADMINS:
         return True
 
-    for force_sub_channel in FORCE_SUB_CHANNELS:
+    for force_sub_channel in force_sub_channels:
         try:
             member = await client.get_chat_member(chat_id=force_sub_channel, user_id=user_id)
         except UserNotParticipant:
             return False
 
-        if not member.status in [ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.MEMBER]:
+        if member.status not in [ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.MEMBER]:
             return False
 
     return True
