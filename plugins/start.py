@@ -86,7 +86,7 @@ async def start_command(client: Client, message: Message):
                     reply_markup=reply_markup,
                     protect_content=PROTECT_CONTENT
                 )
-                asyncio.create_task(delete_message_after_delay(client, message.from_user.id, sent_message.id, DELAY))  # Schedule deletion after 2 minutes
+                asyncio.create_task(delete_message_after_delay(client, message.from_user.id, sent_message.id, DELAY))
                 await asyncio.sleep(0.5)
             except FloodWait as e:
                 await asyncio.sleep(e.x)
@@ -97,7 +97,7 @@ async def start_command(client: Client, message: Message):
                     reply_markup=reply_markup,
                     protect_content=PROTECT_CONTENT
                 )
-                asyncio.create_task(delete_message_after_delay(client, message.from_user.id, sent_message.id, DELAY))  # Schedule deletion after 2 minutes
+                asyncio.create_task(delete_message_after_delay(client, message.from_user.id, sent_message.id, DELAY))
             except:
                 pass
         return
