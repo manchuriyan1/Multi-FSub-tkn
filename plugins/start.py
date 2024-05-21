@@ -88,7 +88,7 @@ async def start_command(client: Client, message: Message):
                     protect_content=PROTECT_CONTENT
                 )
                 asyncio.create_task(delete_message_after_delay(client, message.from_user.id, sent_message.id, int(DELAY)))
-                await asyncio.sleep(2)
+                await asyncio.sleep(1)
             except FloodWait as e:
                 await asyncio.sleep(e.x)
                 sent_message = await msg.copy(
