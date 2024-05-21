@@ -101,8 +101,8 @@ async def start_command(client: Client, message: Message):
                 asyncio.create_task(delete_message_after_delay(client, message.from_user.id, sent_message.id, int(DELAY)))
             except Exception as e:
                 print(f"Error sending message: {e}")
-        n_msg = await message.reply("**Please forward files somewhere else or save in Saved Messages cause file going to delete in few minutes.")
-        await asyncio.sleep(10)
+        n_msg = await message.reply("‼️ 𝖡𝖾𝖿𝗈𝗋𝖾 𝖽𝗈𝗐𝗇𝗅𝗈𝖺𝖽𝗂𝗇𝗀 𝗍𝗁𝖾 𝖿𝗂𝗅𝖾𝗌, 𝗉𝗅𝖾𝖺𝗌𝖾 𝗍𝗋𝖺𝗇𝗌𝖿𝖾𝗋 𝗍𝗁𝖾𝗆 𝗍𝗈 𝖺𝗇𝗈𝗍𝗁𝖾𝗋 𝗅𝗈𝖼𝖺𝗍𝗂𝗈𝗇 𝗈𝗋 𝗌𝖺𝗏𝖾 𝗍𝗁𝖾𝗆 𝗂𝗇 𝖲𝖺𝗏𝖾𝖽 𝖬𝖾𝗌𝗌𝖺𝗀𝖾𝗌, 𝖳𝗁𝖾𝗒 𝗐𝗂𝗅𝗅 𝖻𝖾 𝖽𝖾𝗅𝖾𝗍𝖾𝖽 𝗂𝗇 𝟣𝟢 𝗆𝗂𝗇𝗎𝗍𝖾𝗌.")
+        await asyncio.sleep(60)
         await n_msg.delete()
         return
     else:
@@ -320,7 +320,7 @@ async def show_fsub(client, message):
             chat = await client.get_chat(int(channel_id))
             channel_info.append(f"→ **[{chat.title}]({chat.invite_link})**")
         if channel_info:
-            await message.reply(f"**Force Subscribed channels:**\n" + "\n".join(channel_info), parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+            await message.reply(f"**Force Subscribed Channels:**\n" + "\n".join(channel_info), parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
         else:
             await message.reply("No subscribed channels found.")
     else:
