@@ -277,7 +277,6 @@ async def add_fsub(client, message):
 
     for channel_id in channel_ids:
         try:
-            print(channel_id)
             test_msg = await client.send_message(int(channel_id), "test")
             await test_msg.delete()
         except:
@@ -299,7 +298,7 @@ async def del_fsub(client, message):
         return
 
     channel_ids = message.text.split()[1:]
-    bot_id = client.me.id  # Assuming `client.me.id` returns the bot's ID
+    bot_id = client.me.id
 
     fsub.update_one(
         {"_id": bot_id},
