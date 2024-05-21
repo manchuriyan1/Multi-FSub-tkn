@@ -3,6 +3,7 @@ from pyrogram import Client, filters
 from pyrogram.enums import ParseMode
 from pyrogram.types import ChatJoinRequest
 
+from config import ADMINS
 from database.database import req_db
 from bot import Bot
 
