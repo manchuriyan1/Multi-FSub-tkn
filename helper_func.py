@@ -27,7 +27,7 @@ async def is_subscribed(filter, client, update):
 
     for force_sub_channel in force_sub_channels:
         try:
-            member = await client.get_chat_member(chat_id=force_sub_channel, user_id=user_id)
+            member = await client.get_chat_member(chat_id=int(force_sub_channel), user_id=user_id)
         except UserNotParticipant:
             return False
 

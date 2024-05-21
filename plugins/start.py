@@ -133,7 +133,7 @@ async def start_command(client: Client, message: Message):
 
 WAIT_MSG = """"<b>Processing ...</b>"""
 
-REPLY_ERROR = """<code>Use this command as a replay to any telegram message with out any spaces.</code>"""
+REPLY_ERROR = """<code>Use this command as a reply to any telegram message without any spaces.</code>"""
 
 #=====================================================================================##
 
@@ -153,20 +153,43 @@ async def not_joined(client: Client, message: Message):
     # Iterate through each force subscription channel
     for idx, force_sub_channel in enumerate(force_sub_channels, start=1):
         try:
-            invite_link = await client.create_chat_invite_link(chat_id=force_sub_channel)
+            invite_link = await client.create_chat_invite_link(chat_id=int(force_sub_channel))
             buttons.append(
-                [
+                
                     InlineKeyboardButton(
                         f"Join Channel {idx}",
                         url=invite_link.invite_link
                     )
-                ]
+                
             )
         except Exception as e:
             print(f"Error creating invite link for channel {force_sub_channel}: {e}")
+    i=0
+    button1 = []
+    button2 = []
+    for button in buttons:
+        i = i+1
+        if i%2==0:
+            button2.append(button)
+        else:
+            button1.append(button)
 
+    if len(buttons)%2==1:
+        exbtn = button1.pop()
+
+    newbuttons = []
+    if len(button1)>0 and len(button2)>0:
+        for btn1,btn2 in zip(button1,button2):
+            newbuttons.append(
+            [
+                btn1,
+                btn2
+            ]
+        )
+    if len(buttons)%2==1:
+        newbuttons.append([exbtn])
     try:
-        buttons.append(
+        newbuttons.append(
             [
                 InlineKeyboardButton(
                     text='Try Again',
@@ -176,7 +199,7 @@ async def not_joined(client: Client, message: Message):
         )
     except IndexError:
         pass
-
+    print(newbuttons)
     await message.reply(
         text=FORCE_MSG.format(
             first=message.from_user.first_name,
@@ -185,7 +208,7 @@ async def not_joined(client: Client, message: Message):
             mention=message.from_user.mention,
             id=message.from_user.id
         ),
-        reply_markup=InlineKeyboardMarkup(buttons),
+        reply_markup=InlineKeyboardMarkup(newbuttons),
         quote=True,
         disable_web_page_preview=True
     )
