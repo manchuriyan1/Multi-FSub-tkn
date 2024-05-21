@@ -10,7 +10,7 @@ async def cb_handler(client: Bot, query: CallbackQuery):
     data = query.data
     if data == "about":
         await query.message.edit_text(
-            text = f"<b>╔════════════⦿\n├⋗ ᴄʀᴇᴀᴛᴏʀ : <a href='tg://user?id={OWNER_ID}'> ꜱʜɪᴋᴀᴍᴀʀᴜ </a>\n├⋗ ʟᴀɴɢᴜᴀɢᴇ : <code>Python3</code>\n├⋗ ʟɪʙʀᴀʀʏ : <a href='https://docs.pyrogram.org/'>Pyrogram asyncio {__version__}</a>\n├⋗ ꜱᴏᴜʀᴄᴇ ᴄᴏᴅᴇ : <a href='tg://user?id={OWNER_ID}'> ᴘᴀɪᴅ </a>\n├⋗ ᴍᴀɪɴ ᴄʜᴀɴɴᴇʟ : <a href='https://t.me/Vip_studios'> ᴠɪᴘ ꜱᴛᴜᴅɪᴏꜱ </a>\n├⋗ ꜱᴜᴘᴘᴏʀᴛ ɢʀᴏᴜᴘ : <a href='https://t.me/+UoOAfvRc8R0zNjg1'> ᴅɪꜱᴄᴜꜱꜱɪᴏɴ ᴄʜᴀᴛ</a>\n╚═════════════════⦿</b>",
+            text = f"<b>○ 𝖢𝗋𝖾𝖺𝗍𝗈𝗋 : <a href='tg://user?id={OWNER_ID}'>𝖳𝗁𝗂𝗌 𝖯𝖾𝗋𝗌𝗈𝗇</a>\n○ 𝖫𝖺𝗇𝗀𝗎𝖺𝗀𝖾 : <code>𝖯𝖺𝗒𝗍𝗁𝗈𝗇 𝟥</code>\n○ 𝖲𝗈𝗎𝗋𝖼𝖾 𝖢𝗈𝖽𝖾 : <a href='tg://user?id={OWNER_ID}'>𝖯𝖺𝗂𝖽</a>\n○ 𝖢𝗁𝖺𝗇𝗇𝖾𝗅 : <a href='https://t.me/Vip_studios'>𝖵𝖨𝖯 𝖲𝗍𝗎𝖽𝗂𝗈𝗌</a>\n○ 𝖲𝗎𝗉𝗉𝗈𝗋𝗍 𝖦𝗋𝗈𝗎𝗉 : <a href='https://t.me/+UoOAfvRc8R0zNjg1'>𝖣𝗂𝗌𝖼𝗎𝗌𝗌𝗂𝗈𝗇 𝖢𝗁𝖺𝗍</a></b>",
             disable_web_page_preview = True,
             reply_markup = InlineKeyboardMarkup(
                 [
