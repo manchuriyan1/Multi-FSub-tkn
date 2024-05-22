@@ -69,7 +69,7 @@ async def show_req(client, message):
             channel_info.append(f"→ **Channel ID: {channel_id}**: {user_count} users (Error: {e})")
 
     if channel_info:
-        await message.reply(f"**Channels Added For Request Count:**\n" + "\n".join(channel_info), parse_mode="ParseMode.MarkDown", disable_web_page_preview=True)
+        await message.reply(f"**Channels Added For Request Count:**\n" + "\n".join(channel_info), parse_mode="ParseMode.MARKDOWN", disable_web_page_preview=True)
     else:
         await message.reply("No channels found.")
 
