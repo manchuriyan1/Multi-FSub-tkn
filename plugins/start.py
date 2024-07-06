@@ -8,9 +8,10 @@ from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated
 
 from bot import Bot
 from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT, DELAY
+
 from helper_func import subscribed, encode, decode, get_messages
 from database.database import add_user, del_user, full_userbase, present_user, fsub
-
+from req_count import add_req, del_req, show_req, join_reqs, reset_req
 
 async def delete_message_after_delay(client: Client, chat_id: int, message_id: int, delay: int):
     await asyncio.sleep(delay)
@@ -137,57 +138,47 @@ REPLY_ERROR = """<code>Use this command as a reply to any telegram message witho
 
 #=====================================================================================##
 
-        
+
 @Bot.on_message(filters.command('start') & filters.private)
 async def not_joined(client: Client, message: Message):
     buttons = []
-    
+
     bot_id = client.me.id
     fsub_entry = fsub.find_one({"_id": bot_id})
+    req_entry = req_db.find({})
 
-    if not fsub_entry or "channel_ids" not in fsub_entry:
-        return
+    force_sub_channels = fsub_entry.get("channel_ids", []) if fsub_entry else []
+    req_channels = [entry["_id"] for entry in req_entry]
 
-    force_sub_channels = fsub_entry["channel_ids"]
-    
-    # Iterate through each force subscription channel
-    for idx, force_sub_channel in enumerate(force_sub_channels, start=1):
+    all_channels = list(set(force_sub_channels + req_channels))
+
+    for idx, channel_id in enumerate(all_channels, start=1):
         try:
-            invite_link = await client.create_chat_invite_link(chat_id=int(force_sub_channel))
+            invite_link = await client.create_chat_invite_link(chat_id=int(channel_id))
             buttons.append(
-                
-                    InlineKeyboardButton(
-                        f"Join Channel {idx}",
-                        url=invite_link.invite_link
-                    )
-                
+                InlineKeyboardButton(
+                    f"Join Channel {idx}",
+                    url=invite_link.invite_link
+                )
             )
         except Exception as e:
-            print(f"Error creating invite link for channel {force_sub_channel}: {e}")
-    i=0
-    button1 = []
-    button2 = []
-    for button in buttons:
-        i = i+1
-        if i%2==0:
-            button2.append(button)
-        else:
-            button1.append(button)
+            print(f"Error creating invite link for channel {channel_id}: {e}")
 
-    if len(buttons)%2==1:
-        exbtn = button1.pop()
+    button1, button2 = [], []
+    for i, button in enumerate(buttons):
+        if i % 2 == 0:
+            button1.append(button)
+        else:
+            button2.append(button)
 
     newbuttons = []
-    if len(button1)>0 and len(button2)>0:
-        for btn1,btn2 in zip(button1,button2):
-            newbuttons.append(
-            [
-                btn1,
-                btn2
-            ]
-        )
-    if len(buttons)%2==1:
-        newbuttons.append([exbtn])
+    if button1 and button2:
+        for btn1, btn2 in zip(button1, button2):
+            newbuttons.append([btn1, btn2])
+
+    if len(button1) > len(button2):
+        newbuttons.append([button1[-1]])
+
     try:
         newbuttons.append(
             [
@@ -199,6 +190,7 @@ async def not_joined(client: Client, message: Message):
         )
     except IndexError:
         pass
+
     await message.reply(
         text=FORCE_MSG.format(
             first=message.from_user.first_name,
@@ -264,7 +256,8 @@ Unsuccessful: <code>{unsuccessful}</code></b>"""
         await asyncio.sleep(8)
         await msg.delete()
 
-#add fsub in db 
+
+# Handlers for Force Subscription
 @Bot.on_message(filters.command('addfsub') & filters.private & filters.user(ADMINS))
 async def add_fsub(client, message):
     if len(message.command) == 1:
@@ -279,7 +272,7 @@ async def add_fsub(client, message):
             test_msg = await client.send_message(int(channel_id), "test")
             await test_msg.delete()
         except:
-            await message.reply(f"Please make admin bot in channel_id: {channel_id} or double check the id.")
+            await message.reply(f"Please make the bot an admin in channel_id: {channel_id} or double-check the id.")
             return
 
     fsub.update_one(
@@ -289,7 +282,6 @@ async def add_fsub(client, message):
     )
     await message.reply(f"Added channel IDs: {', '.join(channel_ids)}")
 
-### Deleting Channel IDs
 @Bot.on_message(filters.command('delfsub') & filters.private & filters.user(ADMINS))
 async def del_fsub(client, message):
     if len(message.command) == 1:
@@ -305,21 +297,27 @@ async def del_fsub(client, message):
     )
     await message.reply(f"Deleted channel IDs: {', '.join(channel_ids)}")
 
-### Showing All Channel IDs
 @Bot.on_message(filters.command('showfsub') & filters.private & filters.user(ADMINS))
 async def show_fsub(client, message):
     bot_id = client.me.id
     fsub_entry = fsub.find_one({"_id": bot_id})
+    req_entries = req_db.find({})
 
-    if fsub_entry and "channel_ids" in fsub_entry:
-        channel_ids = fsub_entry["channel_ids"]
-        channel_info = []
-        for channel_id in channel_ids:
+    force_sub_channels = fsub_entry.get("channel_ids", []) if fsub_entry else []
+    req_channels = [entry["_id"] for entry in req_entries]
+
+    all_channels = list(set(force_sub_channels + req_channels))
+
+    channel_info = []
+    for channel_id in all_channels:
+        user_count = len(req_db.find_one({"_id": channel_id}).get("User_INFO", [])) if req_db.find_one({"_id": channel_id}) else 0
+        try:
             chat = await client.get_chat(int(channel_id))
-            channel_info.append(f"→ **[{chat.title}]({chat.invite_link})**")
-        if channel_info:
-            await message.reply(f"**Force Subscribed Channels:**\n" + "\n".join(channel_info), parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
-        else:
-            await message.reply("No subscribed channels found.")
+            channel_info.append(f"→ **[{chat.title}]({chat.invite_link})**: {user_count} user requests")
+        except Exception as e:
+            channel_info.append(f"→ **Channel ID: {channel_id}**: {user_count} users (Error: {e})")
+
+    if channel_info:
+        await message.reply(f"**Channels Added For Subscription:**\n" + "\n".join(channel_info), parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
     else:
-        await message.reply("No subscribed channel IDs found.")
+        await message.reply("No subscribed channels found.")
