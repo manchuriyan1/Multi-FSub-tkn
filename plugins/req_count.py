@@ -7,6 +7,7 @@ from config import ADMINS
 from database.database import req_db
 from bot import Bot
 
+
 # Add IDs in db
 @Bot.on_message(filters.command('addreq') & filters.private & filters.user(ADMINS))
 async def add_req(client, message):
@@ -34,7 +35,7 @@ async def add_req(client, message):
 @Bot.on_message(filters.command('delreq') & filters.private & filters.user(ADMINS))
 async def del_req(client, message):
     if len(message.command) == 1:
-        await message.reply("Please provide channel IDs to delete from fsub in the bot. If deleting more than one, separate IDs with spaces.")
+        await message.reply("Please provide channel IDs to delete. If deleting more than one, separate IDs with spaces.")
         return
 
     channel_ids = message.text.split()[1:]
@@ -73,11 +74,11 @@ async def show_req(client, message):
     else:
         await message.reply("No channels found.")
 
-
+# Handle chat join requests
 @Bot.on_chat_join_request()
 async def join_reqs(client, join_req: ChatJoinRequest):
     channel_id = join_req.chat.id
-    
+
     if req_db.find_one({"_id": channel_id}):
         user_data = {
             "user_id": join_req.from_user.id,
@@ -86,7 +87,7 @@ async def join_reqs(client, join_req: ChatJoinRequest):
             "date": join_req.date
         }
 
-        # Update USER_INFO in db
+        # Update USER_INFO in the database
         req_db.update_one(
             {"_id": channel_id},
             {"$push": {"User_INFO": user_data}},
