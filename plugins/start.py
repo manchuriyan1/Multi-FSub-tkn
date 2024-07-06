@@ -11,7 +11,7 @@ from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL
 
 from helper_func import subscribed, encode, decode, get_messages
 from database.database import add_user, del_user, full_userbase, present_user, fsub
-from req_count import add_req, del_req, show_req, join_reqs, reset_req
+from plugins.req_count import add_req, del_req, show_req, join_reqs, reset_req
 
 async def delete_message_after_delay(client: Client, chat_id: int, message_id: int, delay: int):
     await asyncio.sleep(delay)
