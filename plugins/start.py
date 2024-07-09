@@ -218,53 +218,6 @@ async def send_text(client: Bot, message: Message):
         blocked = 0
         deleted = 0
         unsuccessful = 0
-
-        for user in query:
-            try:
-                await broadcast_msg.copy(user)
-                successful += 1
-                await asyncio.sleep(0.5)
-            except FloodWait as e:
-                await asyncio.sleep(e.x)
-                await broadcast_msg.copy(user)
-                successful += 1
-            except UserIsBlocked:
-                blocked += 1
-            except InputUserDeactivated:
-                deleted += 1
-            except:
-                unsuccessful += 1
-            total += 1
-            if total % 20 == 0:
-                await msg.edit(
-                    f"Broadcast in progress:\n"
-                    f"Total: {total}\n"
-                    f"Successful: {successful}\n"
-                    f"Blocked: {blocked}\n"
-                    f"Deleted: {deleted}\n"
-                    f"Unsuccessful: {unsuccessful}"
-                )
-
-        await msg.edit(
-            f"Broadcast completed:\n"
-            f"Total: {total}\n"
-            f"Successful: {successful}\n"
-            f"Blocked: {blocked}\n"
-            f"Deleted: {deleted}\n"
-            f"Unsuccessful: {unsuccessful}"
-        )
-'''
-
-@Bot.on_message(filters.private & filters.command('broadcast') & filters.user(ADMINS))
-async def send_text(client: Bot, message: Message):
-    if message.reply_to_message:
-        query = await full_userbase()
-        broadcast_msg = message.reply_to_message
-        total = 0
-        successful = 0
-        blocked = 0
-        deleted = 0
-        unsuccessful = 0
         
         pls_wait = await message.reply("<i>Broadcasting Message.. This will Take Some Time</i>")
         for chat_id in query:
@@ -300,7 +253,6 @@ Unsuccessful: <code>{unsuccessful}</code></b>"""
         msg = await message.reply(REPLY_ERROR)
         await asyncio.sleep(8)
         await msg.delete()
-'''
 
 # Handlers for Force Subscription
 @Bot.on_message(filters.command('addfsub') & filters.private & filters.user(ADMINS))
@@ -316,8 +268,8 @@ async def add_fsub(client, message):
         try:
             test_msg = await client.send_message(int(channel_id), "test")
             await test_msg.delete()
-        except:
-            await message.reply(f"Please make the bot an admin in channel_id: {channel_id} or double-check the id.")
+        except Exception as e:
+            await message.reply(f"Please make the bot an admin in channel_id: {channel_id} or double-check the id. Error: {e}")
             return
 
     fsub.update_one(
