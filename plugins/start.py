@@ -1,4 +1,3 @@
-#(©)CodeXBotz
 import os
 import asyncio
 from pyrogram import Client, filters, __version__
@@ -102,7 +101,7 @@ async def start_command(client: Client, message: Message):
                 asyncio.create_task(delete_message_after_delay(client, message.from_user.id, sent_message.id, int(DELAY)))
             except Exception as e:
                 print(f"Error sending message: {e}")
-        n_msg = await message.reply("‼️ 𝖡𝖾𝖿𝗈𝗋𝖾 𝖽𝗈𝗐𝗇𝗅𝗈𝖺𝖽𝗂𝗇𝗀 𝗍𝗁𝖾 𝖿𝗂𝗅𝖾𝗌, 𝗉𝗅𝖾𝖺𝗌𝖾 𝗍𝗋𝖺𝗇𝗌𝖿𝖾𝗋 𝗍𝗁𝖾𝗆 𝗍𝗈 𝖺𝗇𝗈𝗍𝗁𝖾𝗋 𝗅𝗈𝖼𝖺𝗍𝗂𝗈𝗇 𝗈𝗋 𝗌𝖺𝗏𝖾 𝗍𝗁𝖾𝗆 𝗂𝗇 𝖲𝖺𝗏𝖾𝖽 𝖬𝖾𝗌𝗌𝖺𝗀𝖾𝗌, 𝖳𝗁𝖾𝗒 𝗐𝗂𝗅𝗅 𝖻𝖾 𝖽𝖾𝗅𝖾𝗍𝖾𝖽 𝗂𝗇 𝟣𝟢 𝗆𝗂𝗇𝗎𝗍𝖾𝗌.")
+        n_msg = await message.reply("<blockquote><b>🔴 Before downloading the files, please transfer them to another location or save them in Saved Messages. They will be deleted in 60 minutes.</b></blockquote>")
         await asyncio.sleep(60)
         await n_msg.delete()
         return
@@ -110,8 +109,8 @@ async def start_command(client: Client, message: Message):
         reply_markup = InlineKeyboardMarkup(
             [
                 [
-                    InlineKeyboardButton("😊 About Me", callback_data="about"),
-                    InlineKeyboardButton("🔒 Close", callback_data="close")
+                    InlineKeyboardButton("📯 About Me", callback_data="about"),
+                    InlineKeyboardButton("📴 Close", callback_data="close")
                 ]
             ]
         )
@@ -129,14 +128,10 @@ async def start_command(client: Client, message: Message):
         )
         return
 
-    
-#=====================================================================================##
 
 WAIT_MSG = """"<b>Processing ...</b>"""
 
-REPLY_ERROR = """<code>Use this command as a reply to any telegram message without any spaces.</code>"""
-
-#=====================================================================================##
+REPLY_ERROR = """<blockquote><b>Use this command as a reply to any telegram message without any spaces.</b></blockquote>"""
 
 
 @Bot.on_message(filters.command('start') & filters.private)
@@ -154,10 +149,13 @@ async def not_joined(client: Client, message: Message):
 
     for idx, channel_id in enumerate(all_channels, start=1):
         try:
-            invite_link = await client.create_chat_invite_link(chat_id=int(channel_id))
+            if channel_id in force_sub_channels:
+                invite_link = await client.create_chat_invite_link(chat_id=int(channel_id), creates_join_request=False)
+            else:
+                invite_link = await client.create_chat_invite_link(chat_id=int(channel_id), creates_join_request=True)
             buttons.append(
                 InlineKeyboardButton(
-                    f"Join Channel {idx}",
+                    f"Join {idx}",
                     url=invite_link.invite_link
                 )
             )
@@ -220,6 +218,53 @@ async def send_text(client: Bot, message: Message):
         blocked = 0
         deleted = 0
         unsuccessful = 0
+
+        for user in query:
+            try:
+                await broadcast_msg.copy(user)
+                successful += 1
+                await asyncio.sleep(0.5)
+            except FloodWait as e:
+                await asyncio.sleep(e.x)
+                await broadcast_msg.copy(user)
+                successful += 1
+            except UserIsBlocked:
+                blocked += 1
+            except InputUserDeactivated:
+                deleted += 1
+            except:
+                unsuccessful += 1
+            total += 1
+            if total % 20 == 0:
+                await msg.edit(
+                    f"Broadcast in progress:\n"
+                    f"Total: {total}\n"
+                    f"Successful: {successful}\n"
+                    f"Blocked: {blocked}\n"
+                    f"Deleted: {deleted}\n"
+                    f"Unsuccessful: {unsuccessful}"
+                )
+
+        await msg.edit(
+            f"Broadcast completed:\n"
+            f"Total: {total}\n"
+            f"Successful: {successful}\n"
+            f"Blocked: {blocked}\n"
+            f"Deleted: {deleted}\n"
+            f"Unsuccessful: {unsuccessful}"
+        )
+'''
+
+@Bot.on_message(filters.private & filters.command('broadcast') & filters.user(ADMINS))
+async def send_text(client: Bot, message: Message):
+    if message.reply_to_message:
+        query = await full_userbase()
+        broadcast_msg = message.reply_to_message
+        total = 0
+        successful = 0
+        blocked = 0
+        deleted = 0
+        unsuccessful = 0
         
         pls_wait = await message.reply("<i>Broadcasting Message.. This will Take Some Time</i>")
         for chat_id in query:
@@ -255,7 +300,7 @@ Unsuccessful: <code>{unsuccessful}</code></b>"""
         msg = await message.reply(REPLY_ERROR)
         await asyncio.sleep(8)
         await msg.delete()
-
+'''
 
 # Handlers for Force Subscription
 @Bot.on_message(filters.command('addfsub') & filters.private & filters.user(ADMINS))
