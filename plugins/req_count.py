@@ -7,8 +7,7 @@ from config import ADMINS
 from database.database import req_db
 from bot import Bot
 
-
-# Add IDs in db
+# Add IDs in the database
 @Bot.on_message(filters.command('addreq') & filters.private & filters.user(ADMINS))
 async def add_req(client, message):
     if len(message.command) == 1:
@@ -93,6 +92,8 @@ async def join_reqs(client, join_req: ChatJoinRequest):
             {"$push": {"User_INFO": user_data}},
             upsert=True
         )
+
+
 
 # Resetting User_INFO for a Channel ID
 @Bot.on_message(filters.command('rreset') & filters.private & filters.user(ADMINS))
