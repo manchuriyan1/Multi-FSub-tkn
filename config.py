@@ -19,6 +19,7 @@ SHORTLINK_URL = os.environ.get("SHORTLINK_URL", "modijiurl.com")
 SHORTLINK_API = os.environ.get("SHORTLINK_API", "a0c51b7b2b16924757c1e2eb6ca27096f9df7208")
 VERIFY_EXPIRE = int(os.environ.get('VERIFY_EXPIRE', "43200")) # Add time in seconds
 TUT_VID = os.environ.get("TUT_VID","https://t.me/Anime_Elixir/12")
+IS_VERIFY = os.environ.get("IS_VERIFY","True")
 
 TG_BOT_WORKERS = int(os.environ.get("TG_BOT_WORKERS", "400"))
 
