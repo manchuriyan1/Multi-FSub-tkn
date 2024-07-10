@@ -7,133 +7,159 @@ from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, 
 from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated
 
 from bot import Bot
-from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT, DELAY
-from helper_func import subscribed, encode, decode, get_messages
+from config import (
+    ADMINS,
+    FORCE_MSG,
+    START_MSG,
+    CUSTOM_CAPTION,
+    IS_VERIFY,
+    VERIFY_EXPIRE,
+    SHORTLINK_API,
+    SHORTLINK_URL,
+    DISABLE_CHANNEL_BUTTON,
+    PROTECT_CONTENT,
+    TUT_VID,
+    OWNER_ID
+)
+
 from database.database import add_user, del_user, full_userbase, present_user, fsub
-
-
-async def delete_message_after_delay(client: Client, chat_id: int, message_id: int, delay: int):
-    await asyncio.sleep(delay)
-    try:
-        await client.delete_messages(chat_id, message_id)
-    except Exception as e:
-        print(f"Error deleting message {message_id} in chat {chat_id}: {e}")
+from helper_func import subscribed, encode, decode, get_messages, get_shortlink, get_verify_status, update_verify_status, get_exp_time
+from shortzy import Shortzy
 
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
     id = message.from_user.id
-    if not await present_user(id):
-        try:
-            await add_user(id)
-        except:
-            pass
-    text = message.text
-    if len(text) > 7:
-        await message.delete()
-        try:
-            base64_string = text.split(" ", 1)[1]
-        except:
-            return
-        string = await decode(base64_string)
-        argument = string.split("-")
-        if len(argument) == 3:
-            try:
-                start = int(int(argument[1]) / abs(client.db_channel.id))
-                end = int(int(argument[2]) / abs(client.db_channel.id))
-            except:
-                return
-            if start <= end:
-                ids = range(start, end + 1)
-            else:
-                ids = []
-                i = start
-                while True:
-                    ids.append(i)
-                    i -= 1
-                    if i < end:
-                        break
-        elif len(argument) == 2:
-            try:
-                ids = [int(int(argument[1]) / abs(client.db_channel.id))]
-            except:
-                return
-        temp_msg = await message.reply("Please wait...")
-        try:
-            messages = await get_messages(client, ids)
-        except:
-            await message.reply_text("Something went wrong..!")
-            return
-        await temp_msg.delete()
+    if id == ADMINS:
+        await message.reply("You are the owner! Additional actions can be added here.")
 
-        for msg in messages:
-            if bool(CUSTOM_CAPTION) & bool(msg.document):
-                caption = CUSTOM_CAPTION.format(
-                    previouscaption="" if not msg.caption else msg.caption.html,
-                    filename=msg.document.file_name
-                )
-            else:
-                caption = "" if not msg.caption else msg.caption.html
+    else:
+        if not await present_user(id):
+            try:
+                await add_user(id)
+            except:
+                pass
 
-            if DISABLE_CHANNEL_BUTTON:
-                reply_markup = msg.reply_markup
-            else:
+        verify_status = await get_verify_status(id)
+        if verify_status['is_verified'] and VERIFY_EXPIRE < (time.time() - verify_status['verified_time']):
+            await update_verify_status(id, is_verified=False)
+
+        if "verify_" in message.text:
+            _, token = message.text.split("_", 1)
+            if verify_status['verify_token'] != token:
+                return await message.reply("<blockquote><b>🔴 Your token verification is invalid or Expired, Hit /start command and try again<b></blockquote>")
+            await update_verify_status(id, is_verified=True, verified_time=time.time())
+            if verify_status["link"] == "":
                 reply_markup = None
 
+            await message.reply(f"<blockquote><b>Hooray 🎉, your token verification is successful\n\n Now you can access all files for 24-hrs...</b></blockquote>", reply_markup=reply_markup, protect_content=False, quote=True)
+            
+        elif len(message.text) > 7 and verify_status['is_verified']:
             try:
-                sent_message = await msg.copy(
-                    chat_id=message.from_user.id,
-                    caption=caption,
-                    parse_mode=ParseMode.HTML,
-                    reply_markup=reply_markup,
-                    protect_content=PROTECT_CONTENT
-                )
-                asyncio.create_task(delete_message_after_delay(client, message.from_user.id, sent_message.id, int(DELAY)))
-                await asyncio.sleep(1)
-            except FloodWait as e:
-                await asyncio.sleep(e.x)
-                sent_message = await msg.copy(
-                    chat_id=message.from_user.id,
-                    caption=caption,
-                    parse_mode=ParseMode.HTML,
-                    reply_markup=reply_markup,
-                    protect_content=PROTECT_CONTENT
-                )
-                asyncio.create_task(delete_message_after_delay(client, message.from_user.id, sent_message.id, int(DELAY)))
-            except Exception as e:
-                print(f"Error sending message: {e}")
-        n_msg = await message.reply("‼️ 𝖡𝖾𝖿𝗈𝗋𝖾 𝖽𝗈𝗐𝗇𝗅𝗈𝖺𝖽𝗂𝗇𝗀 𝗍𝗁𝖾 𝖿𝗂𝗅𝖾𝗌, 𝗉𝗅𝖾𝖺𝗌𝖾 𝗍𝗋𝖺𝗇𝗌𝖿𝖾𝗋 𝗍𝗁𝖾𝗆 𝗍𝗈 𝖺𝗇𝗈𝗍𝗁𝖾𝗋 𝗅𝗈𝖼𝖺𝗍𝗂𝗈𝗇 𝗈𝗋 𝗌𝖺𝗏𝖾 𝗍𝗁𝖾𝗆 𝗂𝗇 𝖲𝖺𝗏𝖾𝖽 𝖬𝖾𝗌𝗌𝖺𝗀𝖾𝗌, 𝖳𝗁𝖾𝗒 𝗐𝗂𝗅𝗅 𝖻𝖾 𝖽𝖾𝗅𝖾𝗍𝖾𝖽 𝗂𝗇 𝟣𝟢 𝗆𝗂𝗇𝗎𝗍𝖾𝗌.")
-        await asyncio.sleep(60)
-        await n_msg.delete()
-        return
-    else:
-        reply_markup = InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton("😊 About Me", callback_data="about"),
-                    InlineKeyboardButton("🔒 Close", callback_data="close")
-                ]
-            ]
-        )
-        await message.reply_text(
-            text=START_MSG.format(
-                first=message.from_user.first_name,
-                last=message.from_user.last_name,
-                username=None if not message.from_user.username else '@' + message.from_user.username,
-                mention=message.from_user.mention,
-                id=message.from_user.id
-            ),
-            reply_markup=reply_markup,
-            disable_web_page_preview=True,
-            quote=True
-        )
-        return
+                base64_string = message.text.split(" ", 1)[1]
+            except:
+                return
+            _string = await decode(base64_string)
+            argument = _string.split("-")
+            if len(argument) == 3:
+                try:
+                    start = int(int(argument[1]) / abs(client.db_channel.id))
+                    end = int(int(argument[2]) / abs(client.db_channel.id))
+                except:
+                    return
+                if start <= end:
+                    ids = range(start, end+1)
+                else:
+                    ids = []
+                    i = start
+                    while True:
+                        ids.append(i)
+                        i -= 1
+                        if i < end:
+                            break
+            elif len(argument) == 2:
+                try:
+                    ids = [int(int(argument[1]) / abs(client.db_channel.id))]
+                except:
+                    return
+            temp_msg = await message.reply("Please wait...")
+            try:
+                messages = await get_messages(client, ids)
+            except:
+                await message.reply_text("Something went wrong..!")
+                return
+            await temp_msg.delete()
+            
+            snt_msgs = []
+            
+            for msg in messages:
+                if bool(CUSTOM_CAPTION) & bool(msg.document):
+                    caption = CUSTOM_CAPTION.format(previouscaption="" if not msg.caption else msg.caption.html, filename=msg.document.file_name)
+                else:
+                    caption = "" if not msg.caption else msg.caption.html
+
+                if DISABLE_CHANNEL_BUTTON:
+                    reply_markup = msg.reply_markup
+                else:
+                    reply_markup = None
+
+                try:
+                    snt_msg = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                    await asyncio.sleep(0.5)
+                    snt_msgs.append(snt_msg)
+                except FloodWait as e:
+                    await asyncio.sleep(e.x)
+                    snt_msg = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                    snt_msgs.append(snt_msg)
+                except:
+                    pass
+
+            SD = await message.reply(f"<blockquote><b>🔴 This file will be  deleted in  {SECONDS // 60} minutes. Please save or forward it to your saved messages before it gets deleted.</b></blockquote>")
+            await asyncio.sleep(3600)
+            for snt_msg in snt_msgs:
+                try:
+                    await snt_msg.delete()
+                    await SD.delete()
+                except:
+                    pass
+
+        elif verify_status['is_verified']:
+            reply_markup = InlineKeyboardMarkup(
+                [[InlineKeyboardButton("☢️ About", callback_data="about"),
+                  InlineKeyboardButton("📴 Close", callback_data="close")]]
+            )
+            await message.reply_text(
+                text=START_MSG.format(
+                    first=message.from_user.first_name,
+                    last=message.from_user.last_name,
+                    username=None if not message.from_user.username else '@' + message.from_user.username,
+                    mention=message.from_user.mention,
+                    id=message.from_user.id
+                ),
+                reply_markup=reply_markup,
+                disable_web_page_preview=True,
+                quote=True
+            )
+
+        else:
+            verify_status = await get_verify_status(id)
+            if IS_VERIFY and not verify_status['is_verified']:
+                short_url = f"modijiurl.com"
+                token = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
+                await update_verify_status(id, verify_token=token, link="")
+                link = await get_shortlink(SHORTLINK_URL, SHORTLINK_API,f'https://telegram.dog/{client.username}?start=verify_{token}')
+                btn = [
+                    [InlineKeyboardButton("↪️ Get free access for 24-hrs ↩️", url=link)],
+                    [InlineKeyboardButton('🦋 Tutorial', url=TUT_VID)]
+                    ]
+                await message.reply(f"blockquote><b>ℹ️ Hi @{message.from_user.username}\nYour verification is expired, click on below button and complete the verification to\n <u>Get free access for 24-hrs</u></b></blockquote>", reply_markup=InlineKeyboardMarkup(btn), protect_content=False, quote=True)
+                
 
     
 #=====================================================================================##
 
 WAIT_MSG = """"<b>Processing ...</b>"""
 
-REPLY_ERROR = """<code>Use this command as a reply to any telegram message without any spaces.</code>"""
+REPLY_ERROR = """<blockquote><b>Use this command as a reply to any telegram message without any spaces.</b></blockquote>"""
 
 #=====================================================================================##
 
@@ -229,7 +255,7 @@ async def send_text(client: Bot, message: Message):
         deleted = 0
         unsuccessful = 0
         
-        pls_wait = await message.reply("<i>Broadcasting Message.. This will Take Some Time</i>")
+        pls_wait = await message.reply("<blockquote><b>Broadcasting Message.. This will Take Some Time</b></blockquote>")
         for chat_id in query:
             try:
                 await broadcast_msg.copy(chat_id)
@@ -249,14 +275,12 @@ async def send_text(client: Bot, message: Message):
                 pass
             total += 1
         
-        status = f"""<b><u>Broadcast Completed</u>
-
-Total Users: <code>{total}</code>
-Successful: <code>{successful}</code>
-Blocked Users: <code>{blocked}</code>
-Deleted Accounts: <code>{deleted}</code>
-Unsuccessful: <code>{unsuccessful}</code></b>"""
-        
+        status = f"""<blockquote><b>Broadcast Completed
+-Total Users     : {total}
+-Successful      : {successful}
+-Blocked Users   : {blocked}
+-Deleted Accounts: {deleted}
+-Unsuccessful    : {unsuccessful}</b></blockquote>"""       
         return await pls_wait.edit(status)
 
     else:
