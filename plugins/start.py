@@ -157,7 +157,7 @@ async def start_command(client: Client, message: Message):
                     [InlineKeyboardButton("↪️ Get free access for 24-hrs ↩️", url=link)],
                     [InlineKeyboardButton('🦋 Tutorial', url=TUT_VID)]
                     ]
-                await message.reply(f"blockquote><b>ℹ️ Hi @{message.from_user.username}\nYour verification is expired, click on below button and complete the verification to\n <u>Get free access for 24-hrs</u></b></blockquote>", reply_markup=InlineKeyboardMarkup(btn), protect_content=False, quote=True)
+                await message.reply(f"<blockquote><b>ℹ️ Hi @{message.from_user.username}\nYour verification is expired, click on below button and complete the verification to\n <u>Get free access for 24-hrs</u></b></blockquote>", reply_markup=InlineKeyboardMarkup(btn), protect_content=False, quote=True)
                 
 
     
@@ -224,7 +224,7 @@ async def not_joined(client: Client, message: Message):
         newbuttons.append(
             [
                 InlineKeyboardButton(
-                    text='Try Again',
+                    text='🔄 Try Again',
                     url=f"https://t.me/{client.username}?start={message.command[1]}"
                 )
             ]
