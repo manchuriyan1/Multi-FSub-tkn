@@ -1,15 +1,10 @@
-#(©)Codexbotz
-
-import base64
-import re
-import asyncio
 from pyrogram import filters
 from pyrogram.enums import ChatMemberStatus
-from config import ADMINS
+from config import *
 from pyrogram.errors.exceptions.bad_request_400 import UserNotParticipant
 from pyrogram.errors import FloodWait
-
-from database.database import fsub
+from shortzy import Shortzy
+from database import user_data, db_verify_status, db_update_verify_status, fsub, req_db  # Importing from database.py
 
 async def is_subscribed(filter, client, update):
     bot_id = client.me.id
@@ -18,13 +13,11 @@ async def is_subscribed(filter, client, update):
     if not fsub_entry or "channel_ids" not in fsub_entry:
         return True
     
-    force_sub_channels = fsub_entry["channel_ids"]
-    
+    force_sub_channels = fsub_entry["channel_ids"]    
     user_id = update.from_user.id
     
     if user_id in ADMINS:
         return True
-
     for force_sub_channel in force_sub_channels:
         try:
             member = await client.get_chat_member(chat_id=int(force_sub_channel), user_id=user_id)
@@ -35,6 +28,20 @@ async def is_subscribed(filter, client, update):
             return False
 
     return True
+
+async def is_requested(filter, client, update):
+    bot_id = client.me.id
+    req_db_entry = req_db.find_one({"_id": bot_id})
+
+    if not req_db_entry or "channel_ids" not in req_db_entry:
+        return True
+    
+    request_channels = req_db_entry["channel_ids"]    
+    user_id = update.from_user.id
+    
+    # Since we're dealing with join requests, we don't need to check member status
+    return True
+
 
 async def encode(string):
     string_bytes = string.encode("ascii")
