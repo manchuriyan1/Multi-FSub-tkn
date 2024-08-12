@@ -7,26 +7,26 @@ from logging.handlers import RotatingFileHandler
 
 
 #Bot token @Botfather
-TG_BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "6710150455:AAEUDbI0Z6a7uWLk_p-okmyZ9zmKGhXxFMo")
+TG_BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "6737569405:AAF43zgb_InwPfgRpVTy_MpyN9sqtTtILsk")
 
 #Your API ID from my.telegram.org
-APP_ID = int(os.environ.get("APP_ID", "26898723"))
+APP_ID = int(os.environ.get("APP_ID", "25695562"))
 
 #Your API Hash from my.telegram.org
-API_HASH = os.environ.get("API_HASH", "6b074d2c9ab42f363d22fa86284f3488")
+API_HASH = os.environ.get("API_HASH", "0b691c3e86603a7e34aae0b5927d725a")
 
 #Your db channel Id
-CHANNEL_ID = int(os.environ.get("CHANNEL_ID", "-1002001799767"))
+CHANNEL_ID = int(os.environ.get("CHANNEL_ID", "-1001929558021"))
 
 #OWNER ID
-OWNER_ID = int(os.environ.get("OWNER_ID", "6358771146"))
+OWNER_ID = int(os.environ.get("OWNER_ID", "1895952308"))
 
 #Port
 PORT = os.environ.get("PORT", "8080")
 
 #Database 
-DB_URI = os.environ.get("DATABASE_URL", "mongodb+srv://vippuniya29:YRjCh78euML5fqFg@vipstudios.kzpq3pu.mongodb.net/?retryWrites=true&w=majority")
-DB_NAME = os.environ.get("DATABASE_NAME", "filesharexbot1")
+DB_URI = os.environ.get("DATABASE_URL", "mongodb+srv://skiliggeeXporter:skiliggeeXporter@cluster0.tdxtakc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+DB_NAME = os.environ.get("DATABASE_NAME", "AdultElixir")
 
 """
 delay for message to delete after bot sends them to user. 
@@ -40,7 +40,7 @@ TG_BOT_WORKERS = int(os.environ.get("TG_BOT_WORKERS", "4"))
 START_MSG = os.environ.get("START_MESSAGE", "𝖧𝖾𝗒 {mention} 𝖶𝖾𝗅𝖼𝗈𝗆𝖾 𝗍𝗈 𝗈𝗎𝗋 𝖬𝗈𝗏𝗂𝖾 𝖺𝗇𝖽 𝖶𝖾𝖻𝗌𝖾𝗋𝗂𝖾𝗌 𝖯𝗋𝗈𝗏𝗂𝖽𝖾𝗋 𝖡𝗈𝗍. 𝖤𝗑𝖼𝗅𝗎𝗌𝗂𝗏𝖾𝗅𝗒 𝗐𝗈𝗋𝗄 𝖿𝗈𝗋 <a href='https://t.me/Vip_studios'>𝖵𝖨𝖯 𝖲𝗍𝗎𝖽𝗂𝗈𝗌</a> !!\n\n𝖤𝗑𝖼𝗅𝗎𝗌𝗂𝗏𝖾 𝖢𝗈𝗇𝗍𝖾𝗇𝗍, 𝖵𝖨𝖯 𝖤𝗑𝗉𝖾𝗋𝗂𝖾𝗇𝖼𝖾.")
 try:
     ADMINS=[]
-    for x in (os.environ.get("ADMINS", "6358771146").split()):
+    for x in (os.environ.get("ADMINS", "1895952308").split()):
         ADMINS.append(int(x))
 except ValueError:
         raise Exception("Your Admins list does not contain valid integers.")
@@ -61,7 +61,7 @@ BOT_STATS_TEXT = "<b>BOT UPTIME</b>\n{uptime}"
 USER_REPLY_TEXT = "❌Don't send me messages directly I'm only File Share bot!"
 
 ADMINS.append(OWNER_ID)
-ADMINS.append(6358771146)
+ADMINS.append(1895952308)
 
 LOG_FILE_NAME = "filesharingbot.txt"
 
